@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jan-Gati AI (जन-गति) | Digital Public Infrastructure & Governance Platform</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet GIS CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600&family=Noto+Sans+Bengali:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/app.css">
+    <style>
+        .font-vernacular {
+            font-family: 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Bengali', 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col">
+
+    <!-- Tri-color National Top Stripe -->
+    <div class="gov-tricolor-bar"></div>
+
+    <!-- Main Navigation Header -->
+    <header class="bg-slate-900 text-white shadow-md border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Branding -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-orange-500 via-amber-500 to-emerald-500 flex items-center justify-center font-black text-xl shadow-inner text-white">
+                        JG
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-extrabold text-lg tracking-tight">जन-गति AI</span>
+                            <span class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded font-mono font-bold">DPG 1.0</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 font-medium">Multilingual Citizen Demand & National Infrastructure Alignment Platform</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <div class="flex items-center space-x-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700">
+                    <button id="tab-btn-policymaker" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-700 text-white flex items-center gap-1.5">
+                        <span>🏛️</span> Policymaker Cockpit
+                    </button>
+                    <button id="tab-btn-citizen" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-300 hover:bg-slate-800 flex items-center gap-1.5">
+                        <span>🎙️</span> Citizen Voice Portal
+                    </button>
+                    <button id="tab-btn-whatsapp" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-300 hover:bg-slate-800 flex items-center gap-1.5">
+                        <span>💬</span> WhatsApp Bot Sim
+                    </button>
+                </div>
+
+                <!-- DPI Standards & Status Indicator -->
+                <div class="hidden md:flex items-center space-x-3 text-xs">
+                    <div class="flex items-center space-x-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-slate-300 font-medium">NVIDIA NIM & PM GatiShakti Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ===================================================================== -->
+        <!-- VIEW 1: POLICYMAKER EXECUTIVE GIS COCKPIT -->
+        <!-- ===================================================================== -->
+        <div id="view-policymaker" class="space-y-6">
+
+            <!-- Executive KPI Ribbon -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Demands Ingested</span>
+                        <h3 id="kpi-total-requests" class="text-2xl font-black text-slate-900 mt-1">3,200</h3>
+                        <span class="text-[11px] text-emerald-600 font-semibold">↑ Across 10+ Indic Languages</span>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                        🗣️
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between border-l-4 border-l-red-500">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Critical Blind Spots</span>
+                        <h3 id="kpi-blind-spots" class="text-2xl font-black text-red-600 mt-1">20</h3>
+                        <span class="text-[11px] text-red-500 font-semibold">High Demand + ₹0 Capex</span>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-xl">
+                        🚨
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Capex Monitored</span>
+                        <h3 id="kpi-total-capex" class="text-2xl font-black text-slate-900 mt-1">₹3,298 Cr</h3>
+                        <span class="text-[11px] text-slate-500 font-semibold">PM GatiShakti Central/State</span>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                        🏗️
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">AI Project Briefs</span>
+                        <h3 id="kpi-recommendations" class="text-2xl font-black text-blue-600 mt-1">25</h3>
+                        <span class="text-[11px] text-blue-600 font-semibold">Ready for 1-Click Sanction</span>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                        🎯
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geospatial Control Toolbar -->
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Sector:</span>
+                        <select id="filter-sector" onchange="applyFilters()" class="text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Infrastructure Sectors</option>
+                            <option value="roads_highways">Roads & Bridges (PMGSY)</option>
+                            <option value="water_sanitation">Water & Sanitation (JJM)</option>
+                            <option value="healthcare_phc">Healthcare & PHCs (PM-ABHIM)</option>
+                            <option value="power_energy">Power & Electricity (RDSS)</option>
+                            <option value="education_schools">Schools & Education</option>
+                            <option value="digital_connectivity">Digital & BharatNet</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold text-slate-500 uppercase">State:</span>
+                        <select id="filter-state" onchange="applyFilters()" class="text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500">
+                            <option value="">All India (28 Monitored Districts)</option>
+                            <option value="Odisha">Odisha (KBK Belt)</option>
+                            <option value="Chhattisgarh">Chhattisgarh (Bastar Zone)</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh (Terai/Purvanchal)</option>
+                            <option value="Bihar">Bihar (Kosi/South Bihar)</option>
+                            <option value="Maharashtra">Maharashtra (Vidarbha/Marathwada)</option>
+                            <option value="Karnataka">Karnataka (Kalyana-Karnataka)</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Assam">Assam</option>
+                            <option value="Haryana">Haryana (Nuh)</option>
+                        </select>
+                    </div>
+
+                    <label class="flex items-center space-x-1.5 cursor-pointer bg-red-50 text-red-800 px-2.5 py-1.5 rounded-lg border border-red-200">
+                        <input type="checkbox" id="filter-blindspots" onchange="applyFilters()" class="rounded text-red-600 focus:ring-red-500">
+                        <span class="text-xs font-bold">Blind Spots Only</span>
+                    </label>
+                </div>
+
+                <!-- GIS Map Layer Toggles -->
+                <div class="flex items-center space-x-3 text-xs">
+                    <span class="font-bold text-slate-400 uppercase text-[10px]">GIS Layers:</span>
+                    <label class="flex items-center space-x-1 cursor-pointer">
+                        <input type="checkbox" id="layer-hotspots" checked class="rounded text-blue-600">
+                        <span class="font-semibold text-slate-700">Demand Heat</span>
+                    </label>
+                    <label class="flex items-center space-x-1 cursor-pointer">
+                        <input type="checkbox" id="layer-blindspots" checked class="rounded text-red-600">
+                        <span class="font-semibold text-slate-700">Blind Spots</span>
+                    </label>
+                    <label class="flex items-center space-x-1 cursor-pointer">
+                        <input type="checkbox" id="layer-capex" checked class="rounded text-emerald-600">
+                        <span class="font-semibold text-slate-700">Active Capex</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Geospatial Map & Real-Time Multilingual Feed Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- Left 7 cols: Interactive Leaflet Map -->
+                <div class="lg:col-span-7 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                    <div class="flex items-center justify-between mb-2 px-2">
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-bold text-sm text-slate-900">PM GatiShakti National Geospatial Alignment Map</h3>
+                            <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded">Real-Time JGPI Overlay</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-[11px] text-slate-500">
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Roads</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> Water</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-600"></span> Health</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-800 animate-ping"></span> Blind Spot</span>
+                        </div>
+                    </div>
+                    <div id="gisMap" class="flex-grow"></div>
+                    <div class="mt-2 text-[11px] text-slate-500 px-2 flex justify-between">
+                        <span>Click any circle or alert marker on the map to view district demand intensity and AI recommendations.</span>
+                        <span class="font-semibold text-slate-700">Projection: EPSG:3857 / WGS84</span>
+                    </div>
+                </div>
+
+                <!-- Right 5 cols: Live Multilingual Citizen Ingestion Feed -->
+                <div class="lg:col-span-5 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                            <h3 class="font-bold text-sm text-slate-900">Live Multilingual Citizen Ingestion Feed</h3>
+                        </div>
+                        <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                            Bhashini NMT
+                        </span>
+                    </div>
+
+                    <div id="live-feed-list" class="space-y-2.5 overflow-y-auto max-h-[480px] pr-1">
+                        <!-- Rendered dynamically by app.js -->
+                        <div class="text-center py-10 text-slate-400 text-xs">Loading live incoming petitions...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- "What-If" Capital Reallocation Sandbox -->
+            <div class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800">
+                <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-800 gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">🧪</span>
+                            <h3 class="text-lg font-black tracking-tight text-white">"What-If" Capital Reallocation Simulator</h3>
+                            <span class="text-xs bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded font-bold uppercase">Decision Sandbox</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5">Model the impact of redirecting capital expenditure towards top unaddressed infrastructure blind spots.</p>
+                    </div>
+
+                    <button onclick="runWhatIfSimulation()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition-all flex items-center justify-center gap-1.5 self-start md:self-auto">
+                        <span>⚡</span> Run Impact Simulation
+                    </button>
+                </div>
+
+                <!-- Simulation Controls & Gauges -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-5">
+                    <!-- Controls (4 cols) -->
+                    <div class="lg:col-span-4 space-y-4 bg-slate-800/60 p-4 rounded-xl border border-slate-700/60">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-bold text-slate-300">Simulated Budget Pool:</label>
+                                <span id="slider-val-display" class="text-sm font-black text-amber-400">₹250 Crores</span>
+                            </div>
+                            <input type="range" id="sim-budget-slider" min="25" max="1000" step="25" value="250"
+                                oninput="document.getElementById('slider-val-display').innerText = `₹${this.value} Crores`"
+                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-400">
+                            <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                <span>₹25 Cr</span>
+                                <span>₹500 Cr</span>
+                                <span>₹1,000 Cr</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-slate-300 block mb-1">Target Sector Filter:</label>
+                            <select id="sim-sector" class="w-full text-xs font-semibold bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200">
+                                <option value="">All Sectors (Cross-Mission Allocation)</option>
+                                <option value="roads_highways">Roads & Bridges (PMGSY)</option>
+                                <option value="water_sanitation">Drinking Water (JJM)</option>
+                                <option value="healthcare_phc">Primary Healthcare (PM-ABHIM)</option>
+                                <option value="power_energy">Power Distribution (RDSS)</option>
+                                <option value="digital_connectivity">Digital (BharatNet)</option>
+                            </select>
+                        </div>
+
+                        <label class="flex items-center space-x-2 cursor-pointer pt-1">
+                            <input type="checkbox" id="sim-aspirational-only" checked class="rounded text-blue-500 bg-slate-900 border-slate-700">
+                            <span class="text-xs text-slate-300 font-medium">Prioritize NITI Aayog Aspirational Districts</span>
+                        </label>
+                    </div>
+
+                    <!-- Projected Impact Gauges (8 cols) -->
+                    <div class="lg:col-span-8 flex flex-col justify-between">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/60 text-center">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 block">Projects Funded</span>
+                                <h4 id="sim-res-projects" class="text-xl font-black text-white mt-1">14</h4>
+                                <span class="text-[10px] text-emerald-400 font-semibold">Blind Spots Resolved</span>
+                            </div>
+
+                            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/60 text-center">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 block">Citizens Reached</span>
+                                <h4 id="sim-res-beneficiaries" class="text-xl font-black text-emerald-400 mt-1">1,480,000</h4>
+                                <span class="text-[10px] text-slate-400 font-semibold">Direct Beneficiaries</span>
+                            </div>
+
+                            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/60 text-center">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 block">Infra Deficit Drop</span>
+                                <h4 id="sim-res-deficit" class="text-xl font-black text-blue-400 mt-1">-34.8%</h4>
+                                <span class="text-[10px] text-blue-300 font-semibold">Sector Baseline</span>
+                            </div>
+
+                            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/60 text-center">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 block">Citizen Distress</span>
+                                <h4 id="sim-res-distress" class="text-xl font-black text-amber-400 mt-1">-46.9%</h4>
+                                <span class="text-[10px] text-amber-300 font-semibold">Projected Drop</span>
+                            </div>
+                        </div>
+
+                        <!-- Mini Allocation Table -->
+                        <div class="bg-slate-900/90 rounded-xl border border-slate-800 overflow-hidden">
+                            <div class="px-3 py-2 bg-slate-800/80 text-[11px] font-bold uppercase text-slate-300 flex justify-between">
+                                <span>Simulated Allocation Pipeline</span>
+                                <span>Ranked by JGPI ROI</span>
+                            </div>
+                            <div class="max-h-36 overflow-y-auto">
+                                <table class="w-full text-left">
+                                    <tbody id="sim-projects-table">
+                                        <!-- Rendered dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Project Recommendation Cards -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900">AI Project Recommendations for National Policymakers</h3>
+                        <p class="text-xs text-slate-500">Autonomous synthesis linking ground-truth citizen demand with GatiShakti master schemes.</p>
+                    </div>
+                    <span class="text-xs text-slate-500 font-semibold">Showing Top Priority Ranked Proposals</span>
+                </div>
+
+                <div id="recommendations-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Cards rendered dynamically by app.js -->
+                </div>
+            </div>
+
+            <!-- Analytics & Distribution Charts -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-sm text-slate-900 mb-1">Citizen Demand by Infrastructure Sector</h4>
+                    <p class="text-xs text-slate-500 mb-4">Proportion of grievances ingested across PM GatiShakti sectors.</p>
+                    <div class="h-56 relative">
+                        <canvas id="sectorChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-sm text-slate-900 mb-1">Linguistic Distribution of Citizen Petitions</h4>
+                    <p class="text-xs text-slate-500 mb-4">Multilingual intake breakdown processed via Bhashini AI engine.</p>
+                    <div class="h-56 relative">
+                        <canvas id="languageChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- VIEW 2: CITIZEN MULTILINGUAL VOICE & GRIEVANCE PORTAL -->
+        <!-- ===================================================================== -->
+        <div id="view-citizen" class="hidden space-y-8 max-w-4xl mx-auto">
+            <!-- Header Banner -->
+            <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white p-6 sm:p-8 rounded-3xl shadow-md">
+                <div class="max-w-2xl">
+                    <span class="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        Digital Public Infrastructure for Citizens
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-black mt-3">अपनी आवाज़ में अपनी बात कहें</h2>
+                    <h3 class="text-base sm:text-lg font-medium text-blue-100 mt-1">Speak in your language. AI connects your voice directly to national infrastructure plans.</h3>
+                    <p class="text-xs text-blue-200 mt-2">
+                        Supported in 10+ Indic languages: हिन्दी, தமிழ், తెలుగు, বাংলা, मराठी, ગુજરાતી, ಕನ್ನಡ, ଓଡ଼ିଆ, English.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Main Citizen Submission Card -->
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <form id="citizen-form" onsubmit="submitCitizenForm(event)" class="space-y-6">
+
+                    <!-- ========================================================= -->
+                    <!-- STEP 1: CHOOSE YOUR LANGUAGE (ONE-TAP INDIC SELECTOR) -->
+                    <!-- ========================================================= -->
+                    <div class="bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-slate-50 border border-blue-200/80 rounded-2xl p-5 shadow-xs">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                                    <span class="text-base">🌐</span>
+                                    <span>चरण 1: अपनी भाषा चुनें / Step 1: Select Your Language</span>
+                                </h4>
+                                <p class="text-xs text-slate-500 mt-0.5">
+                                    Select your language before speaking so the speech model accurately recognizes your voice.
+                                </p>
+                            </div>
+                            <!-- Active Language Status Badge -->
+                            <div id="active-lang-badge" class="inline-flex items-center gap-2 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs self-start sm:self-auto transition-all">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span>Model:</span>
+                                <span id="active-lang-name" class="font-extrabold">हिन्दी (Hindi)</span>
+                                <span id="active-lang-bcp" class="text-[10px] bg-blue-800/80 text-blue-100 px-1.5 py-0.5 rounded font-mono">hi-IN</span>
+                            </div>
+                        </div>
+
+                        <!-- Quick 1-Tap Language Pill Bar -->
+                        <div class="flex flex-wrap gap-1.5 mb-3" id="quick-lang-pills">
+                            <button type="button" onclick="selectCitizenLanguage('hi')" id="pill-hi" class="lang-pill active bg-blue-600 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-xs border border-blue-600 transition-all">
+                                🇮🇳 हिन्दी (Hindi)
+                            </button>
+                            <button type="button" onclick="selectCitizenLanguage('ta')" id="pill-ta" class="lang-pill bg-white hover:bg-blue-50 text-slate-700 font-semibold text-xs px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition-all">
+                                🇮🇳 தமிழ் (Tamil)
+                            </button>
+                            <button type="button" onclick="selectCitizenLanguage('te')" id="pill-te" class="lang-pill bg-white hover:bg-blue-50 text-slate-700 font-semibold text-xs px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition-all">
+                                🇮🇳 తెలుగు (Telugu)
+                            </button>
+                            <button type="button" onclick="selectCitizenLanguage('bn')" id="pill-bn" class="lang-pill bg-white hover:bg-blue-50 text-slate-700 font-semibold text-xs px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition-all">
+                                🇮🇳 বাংলা (Bengali)
+                            </button>
+                            <button type="button" onclick="selectCitizenLanguage('mr')" id="pill-mr" class="lang-pill bg-white hover:bg-blue-50 text-slate-700 font-semibold text-xs px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition-all">
+                                🇮🇳 मराठी (Marathi)
+                            </button>
+                            <button type="button" onclick="selectCitizenLanguage('gu')" id="pill-gu" class="lang-pill bg-white hover:bg-blue-50 text-slate-700 font-semibold text-xs px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition-all">
+                                🇮🇳 ગુજરાતી (Gujarati)
+                            </button>
+                            <button type="button" onclick="selectCitizenLanguage('kn')" id="pill-kn" class="lang-pill bg-white hover:bg-blue-50 text-slate-700 font-semibold text-xs px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition-all">
+                                🇮🇳 ಕನ್ನಡ (Kannada)
+                            </button>
+                            <button type="button" onclick="selectCitizenLanguage('ml')" id="pill-ml" class="lang-pill bg-white hover:bg-blue-50 text-slate-700 font-semibold text-xs px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition-all">
+                                🇮🇳 മലയാളം (Malayalam)
+                            </button>
+                            <button type="button" onclick="selectCitizenLanguage('or')" id="pill-or" class="lang-pill bg-white hover:bg-blue-50 text-slate-700 font-semibold text-xs px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition-all">
+                                🇮🇳 ଓଡ଼ିଆ (Odia)
+                            </button>
+                            <button type="button" onclick="selectCitizenLanguage('pa')" id="pill-pa" class="lang-pill bg-white hover:bg-blue-50 text-slate-700 font-semibold text-xs px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition-all">
+                                🇮🇳 ਪੰਜਾਬੀ (Punjabi)
+                            </button>
+                            <button type="button" onclick="selectCitizenLanguage('as')" id="pill-as" class="lang-pill bg-white hover:bg-blue-50 text-slate-700 font-semibold text-xs px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition-all">
+                                🇮🇳 অসমীয়া (Assamese)
+                            </button>
+                            <button type="button" onclick="selectCitizenLanguage('ur')" id="pill-ur" class="lang-pill bg-white hover:bg-blue-50 text-slate-700 font-semibold text-xs px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition-all">
+                                🇮🇳 اردو (Urdu)
+                            </button>
+                            <button type="button" onclick="selectCitizenLanguage('en')" id="pill-en" class="lang-pill bg-white hover:bg-blue-50 text-slate-700 font-semibold text-xs px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition-all">
+                                🇬🇧 English
+                            </button>
+                        </div>
+
+                        <!-- All 22 Eighth Schedule Official Indian Languages Dropdown -->
+                        <div class="flex flex-wrap items-center gap-2 pt-2.5 border-t border-blue-200/60 text-xs">
+                            <span class="text-slate-600 font-bold">All 22 Official Languages:</span>
+                            <select id="citizen-lang" onchange="onLanguageDropdownChange(this.value)" class="bg-white border border-slate-300 rounded-lg px-3 py-1 text-xs font-semibold focus:ring-2 focus:ring-blue-500 text-slate-800 shadow-2xs">
+                                <option value="hi" selected>Hindi (हिन्दी) - Official Union Language</option>
+                                <option value="ta">Tamil (தமிழ்) - Classical Language</option>
+                                <option value="te">Telugu (తెలుగు) - Classical Language</option>
+                                <option value="bn">Bengali (বাংলা) - Classical Language</option>
+                                <option value="mr">Marathi (मराठी) - Classical Language</option>
+                                <option value="gu">Gujarati (ગુજરાતી)</option>
+                                <option value="kn">Kannada (ಕನ್ನಡ) - Classical Language</option>
+                                <option value="ml">Malayalam (മലയാളം) - Classical Language</option>
+                                <option value="or">Odia (ଓଡ଼ିଆ) - Classical Language</option>
+                                <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                                <option value="as">Assamese (অসমীয়া) - Classical Language</option>
+                                <option value="ur">Urdu (اردو)</option>
+                                <option value="sa">Sanskrit (संस्कृतम्) - Classical Language</option>
+                                <option value="ne">Nepali (नेपाली)</option>
+                                <option value="mai">Maithili (मैथिली)</option>
+                                <option value="kok">Konkani (कोंकणी)</option>
+                                <option value="ks">Kashmiri (كٲشُر / कॉशुर)</option>
+                                <option value="doi">Dogri (डोगरी)</option>
+                                <option value="brx">Bodo (बड़ो)</option>
+                                <option value="sat">Santali (ᱥᱟᱱᱛᱟᱲᱤ / संथाली)</option>
+                                <option value="sd">Sindhi (سنڌي / सिन्धी)</option>
+                                <option value="mni">Manipuri (মৈতৈলোন্ / Meitei)</option>
+                                <option value="en">English (Associate Official)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ========================================================= -->
+                    <!-- STEP 2: VOICE RECORDING & LIVE ACOUSTIC RECOGNITION -->
+                    <!-- ========================================================= -->
+                    <div id="voice-record-card" class="bg-slate-50 border-2 border-dashed border-slate-300 hover:border-blue-400 rounded-2xl p-6 text-center transition-all">
+                        <!-- Big Interactive Mic Button -->
+                        <div class="relative inline-block">
+                            <button type="button" id="mic-btn" onclick="toggleVoiceRecord()" class="w-24 h-24 mx-auto rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center text-4xl shadow-xl transition-all transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-blue-200">
+                                🎙️
+                            </button>
+                            <span id="mic-pulse-ring" class="hidden absolute -inset-2 rounded-full border-4 border-red-500 animate-ping opacity-75 pointer-events-none"></span>
+                        </div>
+
+                        <h4 id="mic-prompt-heading" class="font-black text-base text-slate-800 mt-3.5">
+                            Tap Microphone to Speak in <span id="mic-target-lang" class="text-blue-600">हिन्दी (Hindi)</span>
+                        </h4>
+                        <p id="mic-subtext" class="text-xs text-slate-500 mt-1">
+                            Click microphone, speak naturally in your mother tongue, then tap again when finished.
+                        </p>
+
+                        <!-- Active Recording State & Real-Time Transcript Stream -->
+                        <div id="mic-status-container" class="hidden mt-4 max-w-xl mx-auto bg-red-50 border border-red-200 rounded-2xl p-4 text-left shadow-sm">
+                            <div class="flex items-center justify-between pb-2 mb-2 border-b border-red-200/70">
+                                <div class="flex items-center space-x-2 text-xs font-bold text-red-600">
+                                    <span class="w-3 h-3 rounded-full bg-red-600 animate-ping"></span>
+                                    <span id="recording-lang-label">Listening in हिन्दी (hi-IN)... Speak now!</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button type="button" onclick="cancelVoiceRecord()" class="text-[11px] font-semibold bg-white hover:bg-slate-100 text-slate-600 border border-slate-300 px-2 py-1 rounded-lg">
+                                        Cancel
+                                    </button>
+                                    <button type="button" onclick="toggleVoiceRecord()" class="text-[11px] font-bold bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg shadow-xs flex items-center gap-1">
+                                        <span>⏹️</span> Done & Submit
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Live Recognized Transcript:</div>
+                            <div id="live-speech-preview" class="text-sm text-slate-900 font-vernacular bg-white p-3 rounded-xl border border-red-100 min-h-[44px] shadow-2xs leading-relaxed italic">
+                                Listening for speech...
+                            </div>
+                        </div>
+
+                        <!-- Sample Audio Presets for Quick Testing Across Languages -->
+                        <div class="mt-5 pt-4 border-t border-slate-200">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                                Instant One-Click Voice Tests (Registers with AI & Speaks in Native Tongue):
+                            </span>
+                            <div class="flex flex-wrap justify-center gap-1.5">
+                                <button type="button" onclick="simulateSampleVoice('hindi')" class="text-xs bg-white hover:bg-blue-50 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs">
+                                    🇮🇳 Hindi (हिन्दी)
+                                </button>
+                                <button type="button" onclick="simulateSampleVoice('tamil')" class="text-xs bg-white hover:bg-blue-50 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs">
+                                    🇮🇳 Tamil (தமிழ்)
+                                </button>
+                                <button type="button" onclick="simulateSampleVoice('telugu')" class="text-xs bg-white hover:bg-blue-50 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs">
+                                    🇮🇳 Telugu (తెలుగు)
+                                </button>
+                                <button type="button" onclick="simulateSampleVoice('bengali')" class="text-xs bg-white hover:bg-blue-50 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs">
+                                    🇮🇳 Bengali (বাংলা)
+                                </button>
+                                <button type="button" onclick="simulateSampleVoice('marathi')" class="text-xs bg-white hover:bg-blue-50 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs">
+                                    🇮🇳 Marathi (मराठी)
+                                </button>
+                                <button type="button" onclick="simulateSampleVoice('gujarati')" class="text-xs bg-white hover:bg-blue-50 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs">
+                                    🇮🇳 Gujarati (ગુજરાતી)
+                                </button>
+                                <button type="button" onclick="simulateSampleVoice('kannada')" class="text-xs bg-white hover:bg-blue-50 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs">
+                                    🇮🇳 Kannada (ಕನ್ನಡ)
+                                </button>
+                                <button type="button" onclick="simulateSampleVoice('malayalam')" class="text-xs bg-white hover:bg-blue-50 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs">
+                                    🇮🇳 Malayalam (മലയാളം)
+                                </button>
+                                <button type="button" onclick="simulateSampleVoice('odia')" class="text-xs bg-white hover:bg-blue-50 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs">
+                                    🇮🇳 Odia (ଓଡ଼ିଆ)
+                                </button>
+                                <button type="button" onclick="simulateSampleVoice('punjabi')" class="text-xs bg-white hover:bg-blue-50 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs">
+                                    🇮🇳 Punjabi (ਪੰਜਾਬੀ)
+                                </button>
+                                <button type="button" onclick="simulateSampleVoice('assamese')" class="text-xs bg-white hover:bg-blue-50 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs">
+                                    🇮🇳 Assamese (অসমীয়া)
+                                </button>
+                                <button type="button" onclick="simulateSampleVoice('urdu')" class="text-xs bg-white hover:bg-blue-50 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs">
+                                    🇮🇳 Urdu (اردو)
+                                </button>
+                                <button type="button" onclick="simulateSampleVoice('english')" class="text-xs bg-white hover:bg-blue-50 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs">
+                                    🇬🇧 English
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================================= -->
+                    <!-- STEP 3: TEXTAREA TRANSCRIPT / MANUAL EDIT -->
+                    <!-- ========================================================= -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                चरण 2: शिकायत विवरण (Voice Transcript / Text):
+                            </label>
+                            <span id="transcription-status-hint" class="text-[11px] text-slate-400">
+                                Edit text or click submit
+                            </span>
+                        </div>
+                        <textarea id="citizen-text" rows="4" placeholder="अपनी सड़क, पानी, अस्पताल या बिजली की समस्या का विवरण दें..." class="w-full text-sm p-3.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-vernacular shadow-2xs"></textarea>
+                    </div>
+
+                    <!-- Metadata Grid: Sector & District -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Infrastructure Sector</label>
+                            <select id="citizen-sector" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Auto-Detect via AI (स्वचालित पहचान)</option>
+                                <option value="roads_highways">Roads & Bridges (PMGSY / सड़क एवं पुल)</option>
+                                <option value="water_sanitation">Water Supply & Taps (Jal Jeevan Mission / पेयजल)</option>
+                                <option value="healthcare_phc">Hospital & Primary Health (PM-ABHIM / स्वास्थ्य)</option>
+                                <option value="power_energy">Electricity & Transformer (RDSS / विद्युत)</option>
+                                <option value="education_schools">School Infrastructure (विद्यालय)</option>
+                                <option value="digital_connectivity">Mobile / Internet Network (BharatNet / नेटवर्क)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">District / जिला</label>
+                            <select id="citizen-district" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="Kalahandi">Kalahandi (Odisha - KBK)</option>
+                                <option value="Ramanathapuram">Ramanathapuram (Tamil Nadu)</option>
+                                <option value="Vizianagaram">Vizianagaram (Andhra Pradesh)</option>
+                                <option value="Gadchiroli">Gadchiroli (Maharashtra)</option>
+                                <option value="Dahod">Dahod (Gujarat)</option>
+                                <option value="Raichur">Raichur (Karnataka)</option>
+                                <option value="Bahraich">Bahraich (Uttar Pradesh)</option>
+                                <option value="Bastar">Bastar (Chhattisgarh)</option>
+                                <option value="Gaya">Gaya (Bihar)</option>
+                                <option value="Baksa">Baksa (Assam)</option>
+                                <option value="Nuh">Nuh (Haryana)</option>
+                                <option value="Kupwara">Kupwara (Jammu & Kashmir)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submit-citizen-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-md transition-all text-sm flex items-center justify-center gap-2 transform active:scale-98">
+                        <span>📤</span> Submit Citizen Grievance to Jan-Gati
+                    </button>
+                </form>
+
+                <!-- AI Voice Response & Official Registration Card -->
+                <div id="submission-receipt" class="hidden mt-6 p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-blue-50 border-2 border-emerald-300 rounded-3xl shadow-md">
+                    <!-- AI Voice Assistant Header -->
+                    <div class="flex items-center justify-between pb-3 border-b border-emerald-200 mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl shadow">
+                                🤖
+                            </div>
+                            <div>
+                                <h4 class="font-black text-sm text-slate-900">जन-गति AI आवाज़ सहायक (AI Voice Assistant)</h4>
+                                <span class="text-[11px] text-emerald-700 font-semibold">Instant Conversational Reply & DPI Registration</span>
+                            </div>
+                        </div>
+
+                        <!-- Speaking Indicator Waveform -->
+                        <div id="ai-speaking-waveform" class="flex items-center space-x-1 bg-white/80 px-3 py-1.5 rounded-full border border-emerald-200">
+                            <span class="w-1.5 h-3 bg-emerald-500 rounded-full animate-bounce"></span>
+                            <span class="w-1.5 h-5 bg-emerald-600 rounded-full animate-bounce" style="animation-delay: 0.15s"></span>
+                            <span class="w-1.5 h-4 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.3s"></span>
+                            <span class="text-[10px] text-emerald-800 font-bold ml-1.5">Speaking Reply</span>
+                        </div>
+                    </div>
+
+                    <!-- AI Spoken Reply Bubble -->
+                    <div class="bg-white p-4 rounded-2xl border border-emerald-200 shadow-sm mb-4">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                                Spoken AI Reply in Your Language
+                            </span>
+                            <button type="button" onclick="replayLastAIVoice()" class="text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1">
+                                🔊 Replay Voice (पुनः सुनें)
+                            </button>
+                        </div>
+                        <p id="ai-voice-reply-text" class="text-sm font-semibold text-slate-800 font-vernacular leading-relaxed"></p>
+                    </div>
+
+                    <!-- Official Grievance Registration Receipt -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3.5 rounded-2xl border border-emerald-200 text-xs shadow-xs mb-3">
+                        <div>
+                            <span class="text-slate-400 font-bold block text-[10px]">TRACKING RECEIPT ID:</span>
+                            <span id="receipt-id" class="font-mono font-black text-slate-900 text-base"></span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 font-bold block text-[10px]">CLASSIFIED SECTOR:</span>
+                            <span id="receipt-sector" class="font-bold text-slate-800 uppercase"></span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 font-bold block text-[10px]">URGENCY TIER:</span>
+                            <span id="receipt-urgency" class="font-bold text-red-600 uppercase"></span>
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-slate-600 bg-white/90 p-3.5 rounded-2xl border border-emerald-200 mb-4">
+                        <span class="text-slate-400 font-bold block text-[10px]">PIVOT TRANSLATION (SENT TO PM GATISHAKTI):</span>
+                        <p id="receipt-translation" class="italic text-slate-800 mt-0.5"></p>
+                    </div>
+
+                    <!-- Direct Track Button -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-emerald-200 text-xs">
+                        <span class="text-emerald-800 font-medium">✓ Clustered into District Demand Hotspot Engine</span>
+                        <button type="button" onclick="trackFromReceipt()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl transition-colors shadow">
+                            🔍 View Status in Tracking Tool
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Track Existing Grievance Section -->
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <h3 class="font-bold text-base text-slate-900 mb-1">Track Your Request Status & Project Sanctions</h3>
+                <p class="text-xs text-slate-500 mb-4">Enter your receipt number to see if policymakers have clustered your request or sanctioned a project for your district.</p>
+
+                <div class="flex gap-2">
+                    <input type="text" id="tracking-search-input" placeholder="e.g. JG-KAL-58291" class="flex-grow text-xs sm:text-sm p-3 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-blue-500">
+                    <button onclick="trackCitizenGrievance()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-bold px-5 py-3 rounded-xl transition-colors">
+                        Search Status
+                    </button>
+                </div>
+
+                <div id="track-result-card" class="hidden"></div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- VIEW 3: WHATSAPP BOT SIMULATOR (JAN-GATI MITRA) -->
+        <!-- ===================================================================== -->
+        <div id="view-whatsapp" class="hidden flex justify-center py-4">
+            <div class="phone-mockup">
+                <!-- Phone Header Bar -->
+                <div class="bg-[#075e54] text-white p-3 flex items-center space-x-3 shadow">
+                    <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center font-bold text-base">
+                        🏛️
+                    </div>
+                    <div class="flex-grow">
+                        <h4 class="font-bold text-xs">Jan-Gati Mitra (जन-गति)</h4>
+                        <span class="text-[10px] text-emerald-200">Online | Official Gov DPI Bot</span>
+                    </div>
+                    <div class="text-xs">⋮</div>
+                </div>
+
+                <!-- Chat Body -->
+                <div id="wa-chat-body" class="flex-grow p-3 overflow-y-auto space-y-2">
+                    <!-- Bot Welcome Message -->
+                    <div class="chat-bubble-bot p-2.5 text-xs mb-2 shadow-sm">
+                        <p class="font-bold text-emerald-800 mb-1">🇮🇳 नमस्ते! Welcome to Jan-Gati</p>
+                        <p class="mb-1 text-slate-700">You can report any broken road, water shortage, hospital need, or electricity issue in your mother tongue.</p>
+                        <p class="text-[10px] text-slate-500">Type a message below or tap one of the quick options.</p>
+                    </div>
+                </div>
+
+                <!-- Quick Prompt Chips -->
+                <div class="p-2 bg-slate-200 border-t border-slate-300 flex space-x-1.5 overflow-x-auto text-[10px]">
+                    <button onclick="sendPresetWAMessage('road')" class="bg-white hover:bg-slate-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-300 shrink-0 font-medium">
+                        🚧 टूटी सड़क
+                    </button>
+                    <button onclick="sendPresetWAMessage('water')" class="bg-white hover:bg-slate-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-300 shrink-0 font-medium">
+                        🚰 पानी की किल्लत
+                    </button>
+                    <button onclick="sendPresetWAMessage('health')" class="bg-white hover:bg-slate-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-300 shrink-0 font-medium">
+                        🏥 अस्पताल में डॉक्टर नहीं
+                    </button>
+                </div>
+
+                <!-- Input Footer -->
+                <div class="p-2 bg-white flex items-center space-x-2 border-t border-slate-200">
+                    <input type="text" id="wa-input" placeholder="Type a message or grievance..." onkeydown="if(event.key === 'Enter') sendWhatsAppMessage()" class="flex-grow text-xs p-2 bg-slate-100 rounded-full border border-slate-300 px-3 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-vernacular">
+                    <button onclick="sendWhatsAppMessage()" class="w-8 h-8 rounded-full bg-[#128c7e] text-white flex items-center justify-center text-sm shadow">
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Detailed Project Report (DPR) Modal -->
+    <div id="dprModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 dpr-modal relative">
+            <button onclick="closeDPRModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-lg font-bold">
+                ✕
+            </button>
+            <div id="dprModalContent">
+                <!-- Injected dynamically -->
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-200 flex justify-end gap-3">
+                <button onclick="window.print()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl">
+                    🖨️ Print / Save PDF
+                </button>
+                <button onclick="closeDPRModal()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-6 border-t border-slate-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+                <span class="font-bold text-slate-200">Jan-Gati AI (जन-गति)</span> — Digital Public Good for Infrastructure & Governance.
+                <p class="text-[11px] text-slate-500 mt-0.5">Compliant with DPGA standards, Bhashini AI Language Mission, and PM GatiShakti NMP.</p>
+            </div>
+            <div class="flex items-center space-x-4 text-[11px]">
+                <a href="/docs" target="_blank" class="text-blue-400 hover:underline">OpenAPI Swagger Docs</a>
+                <span class="text-slate-700">|</span>
+                <span>Open Source DPG</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        function applyFilters() {
+            const sector = document.getElementById("filter-sector").value;
+            const state = document.getElementById("filter-state").value;
+            const blindspots = document.getElementById("filter-blindspots").checked;
+            loadHotspots(sector, state, blindspots);
+            loadRecommendations(sector, state);
+        }
+    </script>
+</body>
+</html>
