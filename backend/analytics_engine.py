@@ -228,7 +228,9 @@ class AnalyticsEngine:
             )
 
             rec = AIProjectRecommendation(
-                recommendation_id=f"REC_{uuid.uuid4().hex[:8].upper()}",
+                recommendation_id=(
+                    f"REC_{uuid.uuid5(uuid.NAMESPACE_URL, f'{h.district_name.lower()}:{h.sector.value}').hex[:12].upper()}"
+                ),
                 hotspot_id=h.hotspot_id,
                 title=title,
                 sector=h.sector,

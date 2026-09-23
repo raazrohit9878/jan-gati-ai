@@ -26,8 +26,20 @@ const SECTOR_COLORS = {
 
 // Initialize on DOM ready
 document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("live-chat-input")?.addEventListener("keydown", event => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendLiveConversationMessage();
+        }
+    });
+    startLiveConversation();
+
     initTabs();
-    initMap();
+    try {
+        initMap();
+    } catch (error) {
+        console.error("Map initialization failed:", error);
+    }
     initCharts();
     loadDashboardSummary();
     loadHotspots();
@@ -35,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadLiveFeed();
     initSpeechRecognition();
     initWhatsAppSimulator();
+    selectLiveLanguage("hi");
 
     // Auto-refresh live feed every 15 seconds
     setInterval(loadLiveFeed, 15000);
@@ -72,6 +85,9 @@ function initTabs() {
 // GIS Interactive Leaflet Map
 // ---------------------------------------------------------------------------
 function initMap() {
+    if (!window.L) {
+        throw new Error("Leaflet is not available");
+    }
     // Centered on Central India
     map = L.map("gisMap", {
         center: [22.8, 80.5],
@@ -362,6 +378,7 @@ async function sanctionProject(recId) {
             method: "POST"
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || `Request failed (${res.status})`);
         if (data.success) {
             alert(data.message);
             loadRecommendations();
@@ -376,6 +393,7 @@ async function viewDPR(recId) {
     try {
         const res = await fetch(`/api/export/dpr/${encodeURIComponent(recId)}`);
         const dpr = await res.json();
+        if (!res.ok) throw new Error(dpr.detail || `Request failed (${res.status})`);
 
         const modal = document.getElementById("dprModal");
         const modalBody = document.getElementById("dprModalContent");
@@ -563,6 +581,11 @@ let speechAutoSubmitTimeout = null;
 let currentActiveLang = "hi";
 let lastAIVoiceReply = { text: "", lang: "hi" };
 let cachedSynthVoices = [];
+let pendingCitizenAnalysis = null;
+let liveConversationSessionId = null;
+let liveConversationLanguage = "hi";
+let liveConversationRecognizer = null;
+let liveConversationRecording = false;
 
 // Voice Cache Loader
 function loadSynthVoices() {
@@ -626,6 +649,165 @@ function selectCitizenLanguage(langCode) {
 
 function onLanguageDropdownChange(langCode) {
     selectCitizenLanguage(langCode);
+}
+
+function selectLiveLanguage(langCode) {
+    liveConversationLanguage = langCode;
+    document.querySelectorAll(".live-lang-pill").forEach(button => {
+        button.classList.remove("bg-blue-600", "text-white");
+        button.classList.add("bg-slate-800", "text-slate-200");
+    });
+    const buttons = document.querySelectorAll(".live-lang-pill");
+    const meta = OFFICIAL_LANGUAGES[langCode] || OFFICIAL_LANGUAGES.hi;
+    buttons.forEach(button => {
+        if (button.innerText.includes(meta.native)) {
+            button.classList.add("bg-blue-600", "text-white");
+            button.classList.remove("bg-slate-800", "text-slate-200");
+        }
+    });
+    const input = document.getElementById("live-chat-input");
+    if (input) input.placeholder = meta.placeholder || "Tell me what happened...";
+}
+
+function appendLiveMessage(text, role = "assistant") {
+    const container = document.getElementById("live-chat-messages");
+    if (!container) return;
+    const bubble = document.createElement("div");
+    bubble.className = role === "user"
+        ? "ml-auto max-w-[85%] bg-blue-600 rounded-2xl rounded-tr-sm p-3 text-sm text-white"
+        : "max-w-[85%] bg-slate-800 border border-slate-700 rounded-2xl rounded-tl-sm p-3 text-sm text-white";
+    bubble.textContent = text;
+    container.appendChild(bubble);
+    container.scrollTop = container.scrollHeight;
+}
+
+function updateLiveContext(data) {
+    const card = document.getElementById("live-context-card");
+    if (!card) return;
+    card.innerHTML = "";
+    [
+        ["Issue", (data.classified_sector || "").replaceAll("_", " ")],
+        ["Location", data.location || "Pending"],
+        ["Authority", data.responsible_body || "Pending"],
+        ["Stage", data.action || "Conversation"]
+    ].forEach(([label, value]) => {
+        const item = document.createElement("div");
+        item.className = "bg-slate-800 border border-slate-700 rounded-xl p-2";
+        item.innerHTML = `<span class="block text-slate-500 uppercase">${label}</span><strong class="text-slate-200">${value}</strong>`;
+        card.appendChild(item);
+    });
+    card.classList.remove("hidden");
+}
+
+async function sendLiveConversationMessage() {
+    const input = document.getElementById("live-chat-input");
+    const message = input?.value.trim();
+    if (!message) return;
+    appendLiveMessage(message, "user");
+    input.value = "";
+    const status = document.getElementById("live-status");
+    if (status) status.innerText = "THINKING";
+    try {
+        const sessionId = liveConversationSessionId;
+        const res = await fetch("/api/citizen/conversation", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                session_id: sessionId,
+                message,
+                language: liveConversationLanguage
+            })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Conversation request failed");
+        liveConversationSessionId = data.session_id;
+        appendLiveMessage(data.assistant_message, "assistant");
+        updateLiveContext(data);
+        const replyLang = data.detected_language || liveConversationLanguage;
+        lastAIVoiceReply = { text: data.assistant_message, lang: replyLang, phonetic: "" };
+        playTTS(data.assistant_message, replyLang);
+        if (status) status.innerText = data.registered ? "REGISTERED" : "LISTENING";
+        if (data.registered) {
+            appendLiveMessage(data.notification?.message || `Tracking ID: ${data.tracking_id}`, "assistant");
+            liveConversationSessionId = null;
+            loadDashboardSummary();
+            loadHotspots();
+            loadRecommendations();
+            loadLiveFeed();
+        }
+    } catch (err) {
+        appendLiveMessage(`I could not continue this conversation: ${err.message}`, "assistant");
+        if (status) status.innerText = "ERROR";
+    }
+}
+
+async function startLiveConversation() {
+    try {
+        const res = await fetch(`/api/citizen/conversation/start?language=${encodeURIComponent(liveConversationLanguage)}`, {
+            method: "POST"
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Unable to start conversation");
+        liveConversationSessionId = data.session_id;
+        const container = document.getElementById("live-chat-messages");
+        if (container) {
+            container.innerHTML = "";
+            appendLiveMessage(data.assistant_message, "assistant");
+        }
+    } catch (err) {
+        console.error("Unable to start live conversation:", err);
+        const status = document.getElementById("live-status");
+        if (status) status.innerText = "OFFLINE";
+        appendLiveMessage(`Live conversation could not start: ${err.message}`, "assistant");
+    }
+}
+
+function toggleLiveConversationVoice() {
+    if (liveConversationRecording) {
+        liveConversationRecognizer?.stop();
+        return;
+    }
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+        appendLiveMessage("Voice input is not available in this browser. You can type your message instead.", "assistant");
+        return;
+    }
+    const meta = OFFICIAL_LANGUAGES[liveConversationLanguage] || OFFICIAL_LANGUAGES.hi;
+    const recognizer = new SpeechRec();
+    recognizer.lang = meta.asr;
+    recognizer.continuous = false;
+    recognizer.interimResults = true;
+    liveConversationRecognizer = recognizer;
+    liveConversationRecording = true;
+    document.getElementById("live-mic-button")?.classList.add("bg-red-600");
+    const transcript = document.getElementById("live-transcript");
+    recognizer.onresult = event => {
+        let text = "";
+        for (let i = 0; i < event.results.length; i++) text += event.results[i][0].transcript;
+        if (transcript) transcript.innerText = `Listening: ${text}`;
+        const input = document.getElementById("live-chat-input");
+        if (input) input.value = text;
+    };
+    recognizer.onerror = () => {
+        liveConversationRecording = false;
+        document.getElementById("live-mic-button")?.classList.remove("bg-red-600");
+        const transcript = document.getElementById("live-transcript");
+        if (transcript) transcript.innerText = "Microphone input failed. Check browser microphone permission and use HTTPS or localhost.";
+    };
+    recognizer.onend = () => {
+        liveConversationRecording = false;
+        document.getElementById("live-mic-button")?.classList.remove("bg-red-600");
+        if (transcript) transcript.innerText = "";
+        if (document.getElementById("live-chat-input")?.value.trim()) sendLiveConversationMessage();
+    };
+    try {
+        recognizer.start();
+    } catch (error) {
+        liveConversationRecording = false;
+        document.getElementById("live-mic-button")?.classList.remove("bg-red-600");
+        const transcript = document.getElementById("live-transcript");
+        if (transcript) transcript.innerText = `Microphone could not start: ${error.message}`;
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -700,16 +882,10 @@ function playTTS(encodedText, lang, onEnd = null, phoneticText = null) {
             if (matchedVoice) isIndianVoice = true;
         }
 
-        // Determine spoken text:
-        // If a native Indic voice is found, speak the native script.
-        // If only an English synthesizer is available, native Indic glyphs (ಕನ್ನಡ, தமிழ், etc.)
-        // will be silently dropped by Windows TTS, leaving only "JG-RAI-79411".
-        // In that scenario, speak the Romanized phonetic text so the citizen hears the full reassurance aloud!
-        let spokenText = text;
-        const hasNativeIndicVoice = matchedVoice && (matchedVoice.lang.startsWith(lang) || matchedVoice.name.toLowerCase().includes(meta.name.toLowerCase()));
-        if (!hasNativeIndicVoice && phoneticText) {
-            spokenText = phoneticText;
-        }
+        // Keep the native script as the primary utterance. Replacing Tamil,
+        // Telugu or Kannada with Romanized English makes the response sound
+        // like English and prevents a browser/network Indic voice from being used.
+        const spokenText = text;
 
         const utterance = new SpeechSynthesisUtterance(spokenText);
         utterance.rate = 0.95;
@@ -1001,8 +1177,26 @@ async function submitCitizenForm(event) {
     const sector = document.getElementById("citizen-sector")?.value || null;
     const district = document.getElementById("citizen-district")?.value || "Kalahandi";
 
+    if (!pendingCitizenAnalysis || pendingCitizenAnalysis.text !== text) {
+        await analyzeCitizenConversation({ text, language: lang, sector, district });
+        return;
+    }
+
+    await registerAnalyzedComplaint();
+}
+
+async function analyzeCitizenConversation(overrides = {}) {
+    const text = overrides.text || document.getElementById("citizen-text")?.value?.trim();
+    if (!text) return;
+    const lang = overrides.language || document.getElementById("citizen-lang")?.value || "hi";
+    const sector = overrides.sector || document.getElementById("citizen-sector")?.value || null;
+    const district = overrides.district || document.getElementById("citizen-district")?.value || "Kalahandi";
+    const name = document.getElementById("citizen-name")?.value?.trim() || "Anonymous Citizen";
+    const contact = document.getElementById("citizen-contact")?.value?.trim() || null;
+    const locality = document.getElementById("citizen-locality")?.value?.trim() || null;
+
     try {
-        const res = await fetch("/api/citizen/submit", {
+        const res = await fetch("/api/citizen/analyze", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1010,12 +1204,84 @@ async function submitCitizenForm(event) {
                 language: lang,
                 sector: sector,
                 district: district,
-                channel: "voice_portal"
+                channel: "voice_portal",
+                citizen_name: name,
+                citizen_contact: contact,
+                village: locality
             })
         });
 
         const data = await res.json();
         if (data.success) {
+            pendingCitizenAnalysis = { text, language: lang, sector, district };
+            renderCitizenAnalysis(data);
+            document.getElementById("ai-voice-reply-text").innerText = data.assistant_reply;
+            lastAIVoiceReply = { text: data.assistant_reply, lang: data.detected_language, phonetic: "" };
+            playTTS(data.assistant_reply, data.detected_language);
+        }
+    } catch (err) {
+        alert("Unable to analyze request: " + err.message);
+    }
+}
+
+function renderCitizenAnalysis(data) {
+    const card = document.getElementById("citizen-analysis-card");
+    if (!card) return;
+    const missing = data.missing_fields?.length
+        ? `<p class="text-xs text-amber-800 mt-2"><strong>Still needed:</strong> ${data.missing_fields.join(", ")}</p>`
+        : `<p class="text-xs text-emerald-800 mt-2">All available details are present. Please confirm before registration.</p>`;
+    card.innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+            <div>
+                <h4 class="font-black text-sm text-slate-900">🤖 AI clarification before registration</h4>
+                <p class="text-sm text-slate-700 mt-2 font-vernacular">${data.assistant_reply}</p>
+            </div>
+            <button type="button" onclick="playTTS(document.getElementById('analysis-reply-text')?.innerText || '', '${data.detected_language}')" class="text-xs bg-white border border-slate-300 rounded-lg px-2 py-1">🔊 Listen</button>
+        </div>
+        <p id="analysis-reply-text" class="hidden">${data.assistant_reply}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 text-xs">
+            <div class="bg-white rounded-lg p-2 border"><strong>Detected issue:</strong> ${data.classified_sector.replaceAll("_", " ")}</div>
+            <div class="bg-white rounded-lg p-2 border"><strong>Location:</strong> ${data.location}</div>
+            <div class="bg-white rounded-lg p-2 border"><strong>Responsible body:</strong> ${data.responsible_body}</div>
+            <div class="bg-white rounded-lg p-2 border"><strong>Department:</strong> ${data.responsible_department}</div>
+        </div>
+        <p class="text-xs text-slate-600 mt-2">${data.responsibility_reason}</p>
+        ${missing}
+        <button type="button" onclick="registerAnalyzedComplaint()" class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-sm">
+            ✅ Confirm details and register complaint
+        </button>
+    `;
+    card.classList.remove("hidden");
+    card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+async function registerAnalyzedComplaint() {
+    if (!pendingCitizenAnalysis) return;
+    const text = document.getElementById("citizen-text")?.value?.trim();
+    const lang = document.getElementById("citizen-lang")?.value || pendingCitizenAnalysis.language;
+    const sector = document.getElementById("citizen-sector")?.value || null;
+    const district = document.getElementById("citizen-district")?.value || pendingCitizenAnalysis.district;
+    const payload = {
+        ...pendingCitizenAnalysis,
+        text,
+        language: lang,
+        sector,
+        district,
+        channel: "voice_portal",
+        citizen_name: document.getElementById("citizen-name")?.value?.trim() || "Anonymous Citizen",
+        citizen_contact: document.getElementById("citizen-contact")?.value?.trim() || null,
+        village: document.getElementById("citizen-locality")?.value?.trim() || null,
+        confirm_registration: true
+    };
+    try {
+        const res = await fetch("/api/citizen/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            pendingCitizenAnalysis = null;
             const receipt = document.getElementById("submission-receipt");
             if (receipt) {
                 receipt.classList.remove("hidden");
@@ -1034,6 +1300,11 @@ async function submitCitizenForm(event) {
             document.getElementById("receipt-sector").innerText = sectorDisplay;
             document.getElementById("receipt-urgency").innerText = data.urgency_level.toUpperCase();
             document.getElementById("receipt-translation").innerText = data.translated_summary;
+            const authority = data.responsible_body
+                ? `Responsible authority: ${data.responsible_body} — ${data.responsible_department}`
+                : "";
+            const authorityNode = document.getElementById("receipt-authority");
+            if (authorityNode) authorityNode.innerText = authority;
 
             // AI Voice Spoken Response
             const aiVoiceReply = data.ai_voice_reply || "आपकी समस्या जन-गति पोर्टल पर दर्ज कर ली गई है।";
@@ -1041,7 +1312,7 @@ async function submitCitizenForm(event) {
             document.getElementById("ai-voice-reply-text").innerText = aiVoiceReply;
             lastAIVoiceReply = { text: aiVoiceReply, lang: data.detected_language, phonetic: aiVoicePhonetic };
 
-            // Instantly speak AI response aloud with universal phonetic fallback
+            // Speak the native-script reply; phonetic text is retained only for legacy clients.
             playTTS(aiVoiceReply, data.detected_language, null, aiVoicePhonetic);
 
             // Clear input and reset live speech preview
@@ -1197,9 +1468,15 @@ window.playTTS = playTTS;
 window.toggleVoiceRecord = toggleVoiceRecord;
 window.simulateSampleVoice = simulateSampleVoice;
 window.submitCitizenForm = submitCitizenForm;
+window.analyzeCitizenConversation = analyzeCitizenConversation;
+window.registerAnalyzedComplaint = registerAnalyzedComplaint;
 window.trackCitizenGrievance = trackCitizenGrievance;
 window.runWhatIfSimulation = runWhatIfSimulation;
 window.sendWhatsAppMessage = sendWhatsAppMessage;
 window.sendPresetWAMessage = sendPresetWAMessage;
 window.replayLastAIVoice = replayLastAIVoice;
 window.trackFromReceipt = trackFromReceipt;
+window.selectLiveLanguage = selectLiveLanguage;
+window.sendLiveConversationMessage = sendLiveConversationMessage;
+window.toggleLiveConversationVoice = toggleLiveConversationVoice;
+window.startLiveConversation = startLiveConversation;

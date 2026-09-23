@@ -261,6 +261,8 @@ KNOWN_DISTRICTS = {
     "nandurbar": {"state": "Maharashtra", "lat": 21.3700, "lon": 74.2400},
     "washim": {"state": "Maharashtra", "lat": 20.1110, "lon": 77.1340},
     "raichur": {"state": "Karnataka", "lat": 16.2076, "lon": 77.3463},
+    "bengaluru": {"state": "Karnataka", "lat": 12.9716, "lon": 77.5946},
+    "bangalore": {"state": "Karnataka", "lat": 12.9716, "lon": 77.5946},
     "yadgir": {"state": "Karnataka", "lat": 16.7700, "lon": 77.1400},
     "ramanathapuram": {"state": "Tamil Nadu", "lat": 9.3639, "lon": 78.8395},
     "virudhunagar": {"state": "Tamil Nadu", "lat": 9.5872, "lon": 77.9514},
@@ -576,12 +578,171 @@ COMPOUND_LIGHTING_TERMS = [
     "اسٹریٹ لائٹ"
 ]
 
+# State-aware routing registry. The classifier chooses the operational body
+# first; the registry supplies the state/UT counterpart for local routing.
+STATE_LOCAL_BODY_REGISTRY = {
+    "Andhra Pradesh": {"urban": "Municipal Administration and Urban Development Department", "roads": "Andhra Pradesh Roads & Buildings Department", "power": "APSPDCL / APEPDCL"},
+    "Arunachal Pradesh": {"urban": "Department of Urban Development", "roads": "Public Works Department", "power": "Department of Power"},
+    "Assam": {"urban": "Department of Housing and Urban Affairs", "roads": "Public Works Roads Department", "power": "APDCL"},
+    "Bihar": {"urban": "Urban Development and Housing Department", "roads": "Rural Works Department", "power": "NBPDCL / SBPDCL"},
+    "Chhattisgarh": {"urban": "Urban Administration and Development Department", "roads": "Public Works Department", "power": "CSPDCL"},
+    "Goa": {"urban": "Directorate of Municipal Administration", "roads": "Public Works Department", "power": "Goa Electricity Department"},
+    "Gujarat": {"urban": "Urban Development and Urban Housing Department", "roads": "Roads and Buildings Department", "power": "UGVCL / DGVCL / MGVCL / PGVCL"},
+    "Haryana": {"urban": "Urban Local Bodies Department", "roads": "Public Works (B&R) Department", "power": "DHBVN / UHBVN"},
+    "Himachal Pradesh": {"urban": "Urban Development Department", "roads": "Public Works Department", "power": "Himachal Pradesh State Electricity Board"},
+    "Jharkhand": {"urban": "Urban Development and Housing Department", "roads": "Road Construction Department", "power": "JBVNL"},
+    "Karnataka": {"urban": "Directorate of Municipal Administration", "roads": "Public Works Department", "power": "BESCOM / state DISCOM"},
+    "Kerala": {"urban": "Department of Local Self Government", "roads": "Public Works Department", "power": "KSEB"},
+    "Madhya Pradesh": {"urban": "Urban Administration and Development Department", "roads": "Public Works Department", "power": "MPPKVVCL / state DISCOM"},
+    "Maharashtra": {"urban": "Urban Development Department", "roads": "Public Works Department", "power": "MSEDCL"},
+    "Manipur": {"urban": "Municipal Administration, Housing and Urban Development", "roads": "Public Works Department", "power": "MSPDCL"},
+    "Meghalaya": {"urban": "Urban Affairs Department", "roads": "Public Works Department", "power": "MePDCL"},
+    "Mizoram": {"urban": "Local Administration Department", "roads": "Public Works Department", "power": "Power and Electricity Department"},
+    "Nagaland": {"urban": "Urban Development Department", "roads": "Public Works Department", "power": "Department of Power"},
+    "Odisha": {"urban": "Housing and Urban Development Department", "roads": "Rural Development / Works Department", "power": "TPCODL / state DISCOM"},
+    "Punjab": {"urban": "Department of Local Government", "roads": "Public Works Department", "power": "PSPCL"},
+    "Rajasthan": {"urban": "Local Self Government Department", "roads": "Public Works Department", "power": "JVVNL / state DISCOM"},
+    "Sikkim": {"urban": "Urban Development Department", "roads": "Roads and Bridges Department", "power": "Power Department"},
+    "Tamil Nadu": {"urban": "Municipal Administration and Water Supply Department", "roads": "Highways and Minor Ports Department", "power": "TANGEDCO"},
+    "Telangana": {"urban": "Municipal Administration and Urban Development Department", "roads": "Roads and Buildings Department", "power": "TSSPDCL / TSNPDCL"},
+    "Tripura": {"urban": "Urban Development Department", "roads": "Public Works Department", "power": "TSECL"},
+    "Uttar Pradesh": {"urban": "Urban Development Department / Nagar Nigam", "roads": "Public Works Department", "power": "DVVNL / MVVNL / PVVNL / PuVVNL"},
+    "Uttarakhand": {"urban": "Urban Development Directorate", "roads": "Public Works Department", "power": "UPCL"},
+    "West Bengal": {"urban": "Municipal Affairs Department", "roads": "Public Works Department", "power": "WBSEDCL"},
+    "Andaman and Nicobar Islands": {"urban": "Directorate of Local Bodies", "roads": "Public Works Department", "power": "Electricity Department"},
+    "Chandigarh": {"urban": "Municipal Corporation Chandigarh", "roads": "Engineering Department", "power": "Electricity Department"},
+    "Dadra and Nagar Haveli and Daman and Diu": {"urban": "Urban Development Department", "roads": "Public Works Department", "power": "Electricity Department"},
+    "Delhi": {"urban": "Municipal Corporation of Delhi / NDMC", "roads": "PWD Delhi", "power": "BSES / Tata Power Delhi"},
+    "Jammu and Kashmir": {"urban": "Housing and Urban Development Department", "roads": "Public Works (R&B) Department", "power": "JPDCL / KPDCL"},
+    "Ladakh": {"urban": "Housing and Urban Development Department", "roads": "Public Works Department", "power": "Power Development Department"},
+    "Lakshadweep": {"urban": "Local Administration Department", "roads": "Public Works Department", "power": "Electricity Department"},
+    "Puducherry": {"urban": "Local Administration Department", "roads": "Public Works Department", "power": "Electricity Department"},
+}
+
 
 class MultilingualNLPEngine:
     """Core Bhashini-compatible NLP and Speech parsing engine."""
 
     def __init__(self):
-        pass
+        self.stop_words = {
+            "the", "is", "a", "an", "and", "or", "to", "of", "in", "on", "for",
+            "my", "our", "near", "at", "from", "please", "there", "this", "that",
+            "में", "का", "की", "के", "और", "से", "को", "है", "हमारे", "मेरे",
+            "இது", "என்", "எங்கள்", "மற்றும்", "உள்ளது",
+            "ఇది", "నా", "మా", "మరియు", "ఉంది",
+            "ಇದು", "ನನ್ನ", "ನಮ್ಮ", "ಮತ್ತು", "ಇದೆ",
+            "এটি", "আমার", "আমাদের", "এবং", "আছে",
+            "મારું", "અમારા", "અને", "છે",
+            "ഇത്", "എന്റെ", "ഞങ്ങളുടെ", "കൂടാതെ", "ആണ്",
+        }
+
+    def preprocess_text(self, text: str) -> Dict[str, Any]:
+        """Clean, normalize, tokenize, and remove common multilingual stop words."""
+        original = text or ""
+        normalized = re.sub(r"\s+", " ", original.strip().lower())
+        normalized = re.sub(r"[^\w\s\u0900-\u0D7F\u0600-\u06FF\u1C50-\u1C7F]", " ", normalized)
+        normalized = re.sub(r"\s+", " ", normalized).strip()
+        tokens = re.findall(r"[\w\u0900-\u0D7F\u0600-\u06FF\u1C50-\u1C7F]+", normalized, re.UNICODE)
+        filtered_tokens = [token for token in tokens if token not in self.stop_words]
+        return {
+            "original": original,
+            "normalized": normalized,
+            "tokens": tokens,
+            "filtered_tokens": filtered_tokens,
+            "cleaned_text": " ".join(filtered_tokens),
+        }
+
+    def identify_responsible_authority(
+        self,
+        text: str,
+        sector: InfraSector,
+        district: Optional[str] = None,
+        state: Optional[str] = None,
+    ) -> Dict[str, str]:
+        """Map a complaint to the most likely local public body without registering it."""
+        lower = (text or "").lower()
+        city = (district or "").lower()
+        state_name = state or "the relevant state department"
+        state_registry = STATE_LOCAL_BODY_REGISTRY.get(state_name, {})
+
+        if sector == InfraSector.POWER_ENERGY:
+            if any(term in lower for term in COMPOUND_LIGHTING_TERMS) or any(
+                term in lower for term in ["street light", "streetlight", "public lighting", "lamp post", "बत्ती", "ಬೀದಿ ದೀಪ"]
+            ):
+                if "bengaluru" in lower or "bangalore" in lower or city in {"bengaluru", "bangalore"}:
+                    return {
+                        "body": "Bruhat Bengaluru Mahanagara Palike (BBMP)",
+                        "department": "BBMP Street Lighting / Electrical Division",
+                        "reason": "BBMP normally maintains public street lights within Bengaluru municipal limits. BESCOM handles electricity supply and outages.",
+                    }
+                return {
+                    "body": state_registry.get("urban", "The local Urban Local Body (Municipal Corporation / Municipality)"),
+                    "department": "Street Lighting / Electrical Division",
+                    "reason": "Public street-light maintenance is normally handled by the local municipal body; the electricity distribution company handles supply faults.",
+                }
+            return {
+                "body": state_registry.get("power", "The local electricity distribution company (DISCOM)"),
+                "department": "Operations and Maintenance / Distribution Division",
+                "reason": "Transformers, poles, supply lines, voltage and outages are handled by the local DISCOM.",
+            }
+
+        authority_by_sector = {
+            InfraSector.ROADS_HIGHWAYS: (
+                state_registry.get("roads", "The road-owning authority (Municipal Corporation, PWD, or Rural Works Division)"),
+                "Roads and Bridges Division",
+                "The exact owner depends on whether the road is inside a city, a state road, or a rural connection.",
+            ),
+            InfraSector.WATER_SANITATION: (
+                state_registry.get("urban", "The local Water Board / Urban Local Body"),
+                "Water Supply and Sanitation Division",
+                "The municipal water board handles urban supply and sanitation; rural schemes are handled by the relevant Panchayat and state water department.",
+            ),
+            InfraSector.HEALTHCARE_PHC: (
+                f"The District Health Department, {state_name}",
+                "District Medical and Health Office / Primary Health Centre administration",
+                "Staffing, medicines and operations of PHCs are handled by the district health administration.",
+            ),
+            InfraSector.EDUCATION_SCHOOLS: (
+                f"The District Education Department, {state_name}",
+                "School Education / Block Education Office",
+                "Government school buildings, teachers and basic facilities are handled by the education department.",
+            ),
+            InfraSector.DIGITAL_CONNECTIVITY: (
+                "The telecom service provider or local fibre-network operator",
+                "Network Operations / Rural Connectivity Division",
+                "Mobile coverage and fibre faults are handled by the telecom operator or the agency operating the local fibre network.",
+            ),
+        }
+        body, department, reason = authority_by_sector.get(
+            sector,
+            ("The relevant local public authority", "Citizen Services Division", "The complaint will be routed after location verification."),
+        )
+        return {"body": body, "department": department, "reason": reason}
+
+    def build_conversation_reply(
+        self,
+        language: IndicLanguage,
+        sector: InfraSector,
+        authority: Dict[str, str],
+        missing_fields: List[str],
+        location_description: Optional[str] = None,
+    ) -> str:
+        """Return a short native-language clarification prompt before registration."""
+        prompts = {
+            IndicLanguage.HINDI: f"मैंने इसे {authority['body']} के {authority['department']} से जोड़कर समझा है। शिकायत दर्ज करने से पहले कृपया {', '.join(missing_fields) or 'इन विवरणों की पुष्टि'} बताएं।",
+            IndicLanguage.TAMIL: f"இந்த பிரச்சினை {authority['body']}யின் {authority['department']}க்கு உட்பட்டதாக தெரிகிறது. பதிவு செய்வதற்கு முன் தயவுசெய்து {', '.join(missing_fields) or 'இந்த விவரங்களை உறுதிப்படுத்தவும்'}.",
+            IndicLanguage.TELUGU: f"ఈ సమస్య {authority['body']} లోని {authority['department']} పరిధిలోకి వస్తుంది. నమోదు చేయడానికి ముందు దయచేసి {', '.join(missing_fields) or 'ఈ వివరాలను నిర్ధారించండి'}.",
+            IndicLanguage.KANNADA: f"ಈ ಸಮಸ್ಯೆ {authority['body']}ಯ {authority['department']} ವ್ಯಾಪ್ತಿಗೆ ಬರುತ್ತದೆ. ನೋಂದಾಯಿಸುವ ಮೊದಲು ದಯವಿಟ್ಟು {', '.join(missing_fields) or 'ಈ ವಿವರಗಳನ್ನು ಖಚಿತಪಡಿಸಿ'}.",
+            IndicLanguage.BENGALI: f"এই সমস্যাটি {authority['body']} এর {authority['department']} এর অধীনে পড়ে। নথিভুক্ত করার আগে অনুগ্রহ করে {', '.join(missing_fields) or 'এই তথ্য নিশ্চিত করুন'}.",
+            IndicLanguage.MARATHI: f"ही समस्या {authority['body']}च्या {authority['department']}कडे येते. नोंदणीपूर्वी कृपया {', '.join(missing_fields) or 'ही माहिती निश्चित करा'}.",
+            IndicLanguage.GUJARATI: f"આ સમસ્યા {authority['body']}ના {authority['department']} હેઠળ આવે છે. નોંધણી પહેલાં કૃપા કરીને {', '.join(missing_fields) or 'આ વિગતોની ખાતરી કરો'}.",
+            IndicLanguage.MALAYALAM: f"ഈ പ്രശ്നം {authority['body']}യുടെ {authority['department']}യുടെ പരിധിയിൽ വരുന്നു. രജിസ്റ്റർ ചെയ്യുന്നതിന് മുമ്പ് ദയവായി {', '.join(missing_fields) or 'ഈ വിവരങ്ങൾ സ്ഥിരീകരിക്കുക'}.",
+            IndicLanguage.ODIA: f"ଏହି ସମସ୍ୟା {authority['body']} ର {authority['department']} ଅଧୀନରେ ଆସେ। ପଞ୍ଜୀକରଣ ପୂର୍ବରୁ ଦୟାକରି {', '.join(missing_fields) or 'ଏହି ତଥ୍ୟ ନିଶ୍ଚିତ କରନ୍ତୁ'}.",
+            IndicLanguage.PUNJABI: f"ਇਹ ਸਮੱਸਿਆ {authority['body']} ਦੇ {authority['department']} ਦੇ ਅਧੀਨ ਆਉਂਦੀ ਹੈ। ਦਰਜ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ {', '.join(missing_fields) or 'ਇਹ ਜਾਣਕਾਰੀ ਪੱਕੀ ਕਰੋ'}.",
+            IndicLanguage.URDU: f"یہ مسئلہ {authority['body']} کے {authority['department']} کے تحت آتا ہے۔ درج کرنے سے پہلے براہ کرم {', '.join(missing_fields) or 'ان تفصیلات کی تصدیق کریں'}.",
+            IndicLanguage.ENGLISH: f"This appears to belong to {authority['department']} of {authority['body']}. Before registration, please provide or confirm: {', '.join(missing_fields) or 'these details'}.",
+        }
+        return prompts.get(language, prompts[IndicLanguage.ENGLISH])
 
     def detect_language(self, text: str, hint_language: Optional[IndicLanguage] = None) -> IndicLanguage:
         """Detects Indic script or honors hint_language for multi-language scripts."""
@@ -919,6 +1080,7 @@ class MultilingualNLPEngine:
         if not text:
             text = "Road infrastructure in rural block requires immediate repair."
 
+        preprocessing = self.preprocess_text(text)
         detected_lang = self.detect_language(text, hint_language=language)
         translated_en = self.translate_to_pivot_english(text, detected_lang)
         sector, sector_conf = self.extract_sector(text)
@@ -927,6 +1089,7 @@ class MultilingualNLPEngine:
 
         return {
             "original_text": text,
+            "preprocessing": preprocessing,
             "translated_text_en": translated_en,
             "detected_language": detected_lang,
             "sector": sector,
@@ -968,7 +1131,7 @@ class MultilingualNLPEngine:
                 f"You are Jan-Gati Voice Mitra, an Indian Government digital public infrastructure AI assistant. "
                 f"A citizen in {district} ({dist_vernacular}) reported a grievance regarding {sector_name} with Tracking ID {tracking_id} (urgency: {urgency_str}). "
                 f"Reply in exactly ONE courteous, reassuring sentence in the citizen's native language ({lang_name}) "
-                f"confirming that their grievance regarding {sector_name} in {dist_vernacular} with Tracking ID {tracking_id} is officially registered and prioritised under PM GatiShakti. "
+                f"confirming that their grievance regarding {sector_name} in {dist_vernacular} with Tracking ID {tracking_id} is officially registered and assigned for local authority review. "
                 f"CRITICAL RULES:\n"
                 f"1. You MUST use the exact district name '{dist_vernacular}' ('{district}'). Do NOT substitute, invent, or mention any other district name (e.g. NEVER mention Chitradurga or other places).\n"
                 f"2. You MUST address the exact sector '{sector_name}' (e.g. power, public lighting). Do NOT change the sector to roads or highways.\n"
@@ -1060,13 +1223,13 @@ class MultilingualNLPEngine:
 
         # 2. Resilient Fallback to Native Templates across All 22 Official Languages
         templates = {
-            IndicLanguage.HINDI: f"नमस्ते! आपकी {sec_vernacular} संबंधी शिकायत जन-गति पोर्टल पर दर्ज कर ली गई है। ट्रैकिंग संख्या {tracking_id} है। इसे {dist_vernacular} के लिए पीएम गति-शक्ति प्राथमिकता मैप में जोड़ दिया गया है।",
-            IndicLanguage.TAMIL: f"வணக்கம்! உங்கள் {sec_vernacular} தொடர்பான கோரிக்கை ஜன்-கதி தளத்தில் பதிவு செய்யப்பட்டது. உங்கள் புகார் எண் {tracking_id}. இது {dist_vernacular} மாவட்டத்தில் உயர் முன்னுரிமையாக சேர்க்கப்பட்டுள்ளது.",
-            IndicLanguage.TELUGU: f"నమస్కారం! మీ {sec_vernacular} ఫిర్యాదు జన-గతి పోర్టల్‌లో నమోదు చేయబడింది. మీ ట్రాకింగ్ నంబర్ {tracking_id}. {dist_vernacular} జిల్లాలో ప్రాధాన్యతా జాబితాలో చేర్చబడింది.",
+            IndicLanguage.HINDI: f"नमस्ते! आपकी {sec_vernacular} संबंधी शिकायत दर्ज कर ली गई है। ट्रैकिंग संख्या {tracking_id} है। इसे संबंधित स्थानीय विभाग को भेजा गया है।",
+            IndicLanguage.TAMIL: f"வணக்கம்! உங்கள் {sec_vernacular} தொடர்பான புகார் பதிவு செய்யப்பட்டது. புகார் எண் {tracking_id}. இது தொடர்புடைய உள்ளாட்சி துறைக்கு அனுப்பப்பட்டுள்ளது.",
+            IndicLanguage.TELUGU: f"నమస్కారం! మీ {sec_vernacular} ఫిర్యాదు నమోదు చేయబడింది. మీ ట్రాకింగ్ నంబర్ {tracking_id}. ఇది సంబంధిత స్థానిక శాఖకు పంపబడింది.",
             IndicLanguage.BENGALI: f"নমস্কার! আপনার {sec_vernacular} সংক্রান্ত অভিযোগ জন-গতি পোর্টালে নথিভুক্ত হয়েছে। ট্র্যাকিং নম্বর {tracking_id}। এটি {dist_vernacular} জেলার অগ্রাধিকার তালিকায় যুক্ত হয়েছে।",
-            IndicLanguage.MARATHI: f"नमस्कार! आपली {sec_vernacular} संबंधी तक्रार जन-गति पोर्टलवर नोंदवली गेली आहे. ट्रॅकिंग क्रमांक {tracking_id} आहे. {dist_vernacular} जिल्ह्यासाठी पीएम गति-शक्तीमध्ये नोंद झाली आहे.",
+            IndicLanguage.MARATHI: f"नमस्कार! आपली {sec_vernacular} संबंधी तक्रार नोंदवली गेली आहे. ट्रॅकिंग क्रमांक {tracking_id} आहे. ती संबंधित स्थानिक विभागाकडे पाठवली आहे.",
             IndicLanguage.GUJARATI: f"નમસ્તે! તમારી {sec_vernacular} સંબંધિત ફરિયાદ જન-ગતિ પોર્ટલ પર નોંધાઈ ગઈ છે. ટ્રેકિંગ નંબર {tracking_id} છે. {dist_vernacular} જિલ્લા માટે પીએમ ગતિ-શક્તિમાં ઉમેરાઈ છે.",
-            IndicLanguage.KANNADA: f"ನಮಸ್ಕಾರ! ನಿಮ್ಮ {sec_vernacular} ದೂರು ಜನ-ಗತಿ ಪೋರ್ಟಲ್‌ನಲ್ಲಿ ದಾಖಲಾಗಿದೆ. ಟ್ರ್ಯಾಕಿಂಗ್ ಸಂಖ್ಯೆ {tracking_id}. {dist_vernacular} ಜಿಲ್ಲೆಯ ಆದ್ಯತೆಯ ಪಟ್ಟಿಗೆ ಸೇರಿಸಲಾಗಿದೆ.",
+            IndicLanguage.KANNADA: f"ನಮಸ್ಕಾರ! ನಿಮ್ಮ {sec_vernacular} ದೂರು ದಾಖಲಾಗಿದೆ. ಟ್ರ್ಯಾಕಿಂಗ್ ಸಂಖ್ಯೆ {tracking_id}. ಇದನ್ನು ಸಂಬಂಧಿಸಿದ ಸ್ಥಳೀಯ ಇಲಾಖೆಗೆ ಕಳುಹಿಸಲಾಗಿದೆ.",
             IndicLanguage.MALAYALAM: f"നമസ്കാരം! നിങ്ങളുടെ {sec_vernacular} പരാതി ജൻ-ഗതി പോർട്ടലിൽ രേഖപ്പെടുത്തിയിട്ടുണ്ട്. ട്രാക്കിംഗ് നമ്പർ {tracking_id}. {dist_vernacular} ജില്ലയിൽ പരിഗണനയ്ക്കായി ചേർത്തു.",
             IndicLanguage.ODIA: f"ନମସ୍କାର! ଆପଣଙ୍କର {sec_vernacular} ସମ୍ବନ୍ଧିତ ଅଭିଯୋଗ ଜନ-ଗତି ପୋର୍ଟାଲରେ ପଞ୍ଜୀକୃତ ହୋଇଛି। ଟ୍ରାକିଂ ନମ୍ବର {tracking_id}। {dist_vernacular} ଜିଲ୍ଲାର ପ୍ରାଥମିକତା ତାଲିକାରେ ଯୋଡ଼ା ଯାଇଛି।",
             IndicLanguage.PUNJABI: f"ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਤੁਹਾਡੀ {sec_vernacular} ਸੰਬੰਧੀ ਸ਼ਿਕਾਇਤ ਜਨ-ਗਤੀ ਪੋਰਟਲ 'ਤੇ ਦਰਜ ਕਰ ਲਈ ਗਈ ਹੈ। ਟ੍ਰੈਕਿੰਗ ਨੰਬਰ {tracking_id} ਹੈ। {dist_vernacular} ਜ਼ਿਲ੍ਹੇ ਲਈ ਪ੍ਰਾਥਮਿਕਤਾ ਸੂਚੀ ਵਿੱਚ ਸ਼ਾਮਲ ਕੀਤਾ ਗਿਆ ਹੈ।",
@@ -1082,7 +1245,7 @@ class MultilingualNLPEngine:
             IndicLanguage.SANTALI: f"ᱡᱚᱦᱟᱨ! ᱟᱢᱟᱜ {sec_vernacular} ᱨᱮᱱᱟᱜ ᱵᱟᱵᱚᱛ ᱡᱚᱱ-ᱜᱚᱛᱤ ᱨᱮ ᱚᱞ ᱟᱠᱟᱱᱟ। ᱴᱨᱮᱠᱤᱝ ᱮᱞ {tracking_id} ᱠᱟᱱᱟ। {dist_vernacular} ᱦᱚᱱᱚᱛ ᱞᱟᱹᱜᱤᱫ ᱢᱟᱬᱟᱝ ᱨᱮ ᱥᱮᱞᱮᱫ ᱮᱱᱟ।",
             IndicLanguage.SINDHI: f"سلام! اوهان جي {sec_vernacular} بابت شڪايت جن-گتي پورٽل تي داخل ڪئي وئي آهي. ٽريڪنگ نمبر {tracking_id} آهي. {dist_vernacular} ضلعي لاء اوليت ڏني وئي آهي.",
             IndicLanguage.MANIPURI: f"খুরুমজরি! নহাক্কী {sec_vernacular} গী ৱাকত জন-গতি পোর্তেলদা রেজিস্তর তৌখ্রে। ত্রেকতিং নম্বরদি {tracking_id} নি। {dist_vernacular} দিস্ত্রিক্তকী ওইনা অহেনবা মীৎয়েং চঙখ্রে।",
-            IndicLanguage.ENGLISH: f"Hello! Your grievance regarding {sec_vernacular} in {district} has been registered on Jan-Gati. Tracking ID: {tracking_id}. It has been added to the PM GatiShakti National Infrastructure Pipeline."
+            IndicLanguage.ENGLISH: f"Hello! Your grievance regarding {sec_vernacular} in {district} has been registered. Tracking ID: {tracking_id}. It has been sent to the responsible local department."
         }
 
         return templates.get(language, templates[IndicLanguage.ENGLISH])
@@ -1161,10 +1324,10 @@ class MultilingualNLPEngine:
         sec_ph = phonetic_sectors.get(language, {}).get(sector, sector.value.replace('_', ' '))
 
         phonetic_templates = {
-            IndicLanguage.KANNADA: f"Namaskara! Nimma {sec_ph} dooru Jan-Gati portal nalli dakhalaagide. Tracking ID {tracking_id}. {district} jilleya aadyathe pattige serisalagide.",
-            IndicLanguage.HINDI: f"Namaste! Aapki {sec_ph} sambandhi shikayat Jan-Gati portal par darj kar li gayi hai. Tracking ID {tracking_id} hai. {district} jile ke liye PM GatiShakti priority list mein joda gaya hai.",
-            IndicLanguage.TAMIL: f"Vanakkam! Ungal {sec_ph} thodarbaana korikkai Jan-Gati thalathil pathivu seyyappattathu. Tracking ID {tracking_id}. {district} mavattathil munnurimai tharappadum.",
-            IndicLanguage.TELUGU: f"Namaskaram! Mee {sec_ph} samasya Jan-Gati portal lo namodhu cheyabadindi. Tracking ID {tracking_id}. {district} jillalo praadhanyatha ivvabaduthundi.",
+            IndicLanguage.KANNADA: f"Namaskara! Nimma {sec_ph} dooru dakhalaagide. Tracking ID {tracking_id}. {district} jilleyalli sambandhapatta sthaliya ilakhege kaluhisalagide.",
+            IndicLanguage.HINDI: f"Namaste! Aapki {sec_ph} sambandhi shikayat darj kar li gayi hai. Tracking ID {tracking_id} hai. Ise sambandhit sthaniya vibhag ko bheja gaya hai.",
+            IndicLanguage.TAMIL: f"Vanakkam! Ungal {sec_ph} thodarbaana pukaar pathivu seyyappattathu. Tracking ID {tracking_id}. {district} mavattathil sambandhapatta ullatchi thuraikku anuppappattathu.",
+            IndicLanguage.TELUGU: f"Namaskaram! Mee {sec_ph} samasya namodhu cheyabadindi. Tracking ID {tracking_id}. {district} jillalo sambandhita sthaanika shaakhaku pampabadindi.",
             IndicLanguage.BENGALI: f"Nomoshkar! Aponar {sec_ph} shonkranto ovijog Jan-Gati portale nothibhukto hoyeche. Tracking ID {tracking_id}. {district} jelay agradhikar dewa hoyeche.",
             IndicLanguage.MARATHI: f"Namaskar! Apli {sec_ph} baabat takrar Jan-Gati portal var nondavli geli aahe. Tracking ID {tracking_id}. {district} jilhyasathi aadyakram dila aahe.",
             IndicLanguage.GUJARATI: f"Namaste! Tamari {sec_ph} baabat fariyad Jan-Gati portal par nondhai gayi che. Tracking ID {tracking_id}. {district} jilla mate aagrimata aapi che.",

@@ -377,8 +377,48 @@
                 </div>
             </div>
 
+            <!-- Gemini-style live citizen conversation -->
+            <div id="live-citizen-portal" class="bg-slate-950 text-white rounded-3xl shadow-2xl overflow-hidden border border-slate-800">
+                <div class="p-5 sm:p-7 border-b border-slate-800 bg-gradient-to-r from-slate-950 via-blue-950 to-slate-950">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <span class="text-[10px] uppercase tracking-[0.2em] text-blue-300 font-bold">Jan-Gati Live</span>
+                            <h2 class="text-xl sm:text-2xl font-black mt-1">Tell me what happened</h2>
+                            <p class="text-xs text-slate-400 mt-1">Speak or type naturally. I will ask questions, explain who can help, and register only after you agree.</p>
+                        </div>
+                        <div id="live-status" class="text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">READY</div>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 mt-4" id="live-language-pills">
+                        <button type="button" onclick="selectLiveLanguage('hi')" class="live-lang-pill bg-blue-600 text-white text-xs px-2.5 py-1.5 rounded-lg">हिन्दी</button>
+                        <button type="button" onclick="selectLiveLanguage('ta')" class="live-lang-pill bg-slate-800 text-slate-200 text-xs px-2.5 py-1.5 rounded-lg">தமிழ்</button>
+                        <button type="button" onclick="selectLiveLanguage('te')" class="live-lang-pill bg-slate-800 text-slate-200 text-xs px-2.5 py-1.5 rounded-lg">తెలుగు</button>
+                        <button type="button" onclick="selectLiveLanguage('kn')" class="live-lang-pill bg-slate-800 text-slate-200 text-xs px-2.5 py-1.5 rounded-lg">ಕನ್ನಡ</button>
+                        <button type="button" onclick="selectLiveLanguage('bn')" class="live-lang-pill bg-slate-800 text-slate-200 text-xs px-2.5 py-1.5 rounded-lg">বাংলা</button>
+                        <button type="button" onclick="selectLiveLanguage('mr')" class="live-lang-pill bg-slate-800 text-slate-200 text-xs px-2.5 py-1.5 rounded-lg">मराठी</button>
+                        <button type="button" onclick="selectLiveLanguage('gu')" class="live-lang-pill bg-slate-800 text-slate-200 text-xs px-2.5 py-1.5 rounded-lg">ગુજરાતી</button>
+                        <button type="button" onclick="selectLiveLanguage('ml')" class="live-lang-pill bg-slate-800 text-slate-200 text-xs px-2.5 py-1.5 rounded-lg">മലയാളം</button>
+                        <button type="button" onclick="selectLiveLanguage('or')" class="live-lang-pill bg-slate-800 text-slate-200 text-xs px-2.5 py-1.5 rounded-lg">ଓଡ଼ିଆ</button>
+                        <button type="button" onclick="selectLiveLanguage('en')" class="live-lang-pill bg-slate-800 text-slate-200 text-xs px-2.5 py-1.5 rounded-lg">English</button>
+                    </div>
+                </div>
+                <div id="live-chat-messages" class="h-[390px] overflow-y-auto p-4 sm:p-6 space-y-3 bg-slate-900">
+                    <div class="max-w-[85%] bg-slate-800 border border-slate-700 rounded-2xl rounded-tl-sm p-3 text-sm">
+                        नमस्ते! अपनी समस्या बताइए। मैं आपसे बातचीत करके सही जानकारी लूँगा।
+                    </div>
+                </div>
+                <div class="p-4 bg-slate-950 border-t border-slate-800">
+                    <div id="live-context-card" class="hidden mb-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]"></div>
+                    <div class="flex items-end gap-2">
+                        <textarea id="live-chat-input" rows="2" placeholder="अपनी समस्या लिखें या माइक्रोफोन दबाकर बोलें..." class="flex-1 resize-none bg-slate-800 text-white placeholder-slate-500 border border-slate-700 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500"></textarea>
+                        <button type="button" id="live-mic-button" onclick="toggleLiveConversationVoice()" class="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-500 text-xl shadow-lg" title="Speak">🎙️</button>
+                        <button type="button" onclick="sendLiveConversationMessage()" class="w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-500 text-xl shadow-lg" title="Send">➤</button>
+                    </div>
+                    <p id="live-transcript" class="text-[11px] text-slate-500 mt-2 min-h-4"></p>
+                </div>
+            </div>
+
             <!-- Main Citizen Submission Card -->
-            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+            <div id="legacy-citizen-form" class="hidden bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
                 <form id="citizen-form" onsubmit="submitCitizenForm(event)" class="space-y-6">
 
                     <!-- ========================================================= -->
@@ -583,6 +623,22 @@
                         <textarea id="citizen-text" rows="4" placeholder="अपनी सड़क, पानी, अस्पताल या बिजली की समस्या का विवरण दें..." class="w-full text-sm p-3.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-vernacular shadow-2xs"></textarea>
                     </div>
 
+                    <!-- Citizen and location details collected before registration -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your name (optional)</label>
+                            <input id="citizen-name" type="text" placeholder="Name" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Phone / email (optional)</label>
+                            <input id="citizen-contact" type="text" placeholder="Contact for updates" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Ward / village / landmark</label>
+                            <input id="citizen-locality" type="text" placeholder="Exact place of problem" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
                     <!-- Metadata Grid: Sector & District -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -619,9 +675,11 @@
 
                     <!-- Submit Button -->
                     <button type="submit" id="submit-citizen-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-md transition-all text-sm flex items-center justify-center gap-2 transform active:scale-98">
-                        <span>📤</span> Submit Citizen Grievance to Jan-Gati
+                        <span>🤖</span> Discuss problem with AI first
                     </button>
                 </form>
+
+                <div id="citizen-analysis-card" class="hidden mt-6 p-5 bg-amber-50 border-2 border-amber-200 rounded-2xl"></div>
 
                 <!-- AI Voice Response & Official Registration Card -->
                 <div id="submission-receipt" class="hidden mt-6 p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-blue-50 border-2 border-emerald-300 rounded-3xl shadow-md">
@@ -676,13 +734,14 @@
                     </div>
 
                     <div class="text-xs text-slate-600 bg-white/90 p-3.5 rounded-2xl border border-emerald-200 mb-4">
-                        <span class="text-slate-400 font-bold block text-[10px]">PIVOT TRANSLATION (SENT TO PM GATISHAKTI):</span>
+                        <span class="text-slate-400 font-bold block text-[10px]">AI-UNDERSTOOD COMPLAINT:</span>
                         <p id="receipt-translation" class="italic text-slate-800 mt-0.5"></p>
+                        <p id="receipt-authority" class="text-slate-800 mt-2 font-semibold"></p>
                     </div>
 
                     <!-- Direct Track Button -->
                     <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-emerald-200 text-xs">
-                        <span class="text-emerald-800 font-medium">✓ Clustered into District Demand Hotspot Engine</span>
+                        <span class="text-emerald-800 font-medium">✓ Sent to the responsible local authority</span>
                         <button type="button" onclick="trackFromReceipt()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl transition-colors shadow">
                             🔍 View Status in Tracking Tool
                         </button>
@@ -691,7 +750,7 @@
             </div>
 
             <!-- Track Existing Grievance Section -->
-            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+            <div id="legacy-tracking-card" class="hidden bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
                 <h3 class="font-bold text-base text-slate-900 mb-1">Track Your Request Status & Project Sanctions</h3>
                 <p class="text-xs text-slate-500 mb-4">Enter your receipt number to see if policymakers have clustered your request or sanctioned a project for your district.</p>
 
@@ -793,7 +852,7 @@
         </div>
     </footer>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=20260923"></script>
     <script>
         function applyFilters() {
             const sector = document.getElementById("filter-sector").value;

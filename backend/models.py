@@ -87,6 +87,8 @@ class CitizenRequestInput(BaseModel):
     longitude: Optional[float] = None
     sector: Optional[InfraSector] = None
     media_url: Optional[str] = None
+    confirm_registration: bool = True
+    conversation_context: Optional[Dict[str, Any]] = None
 
 
 class CitizenRequest(BaseModel):
@@ -111,6 +113,24 @@ class CitizenRequest(BaseModel):
     status: RequestStatus = RequestStatus.RECEIVED
     endorsements: int = 1
     key_entities: List[str] = []
+    citizen_name: Optional[str] = None
+    citizen_contact: Optional[str] = None
+    location_description: Optional[str] = None
+    responsible_body: Optional[str] = None
+    responsible_department: Optional[str] = None
+
+
+class CitizenAnalysisInput(CitizenRequestInput):
+    """Input for the conversational pre-registration analysis step."""
+    confirm_registration: bool = False
+
+
+class CitizenConversationInput(BaseModel):
+    session_id: Optional[str] = None
+    message: str
+    language: Optional[IndicLanguage] = None
+    district: Optional[str] = None
+    confirm_registration: Optional[bool] = None
 
 
 class DistrictProfile(BaseModel):
